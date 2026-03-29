@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ArcGIS SDK Prep</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0a0e1a;--s:#111827;--s2:#1a2235;--bd:#1f2d45;--ac:#00c4ff;--ac2:#7c3aed;--ac3:#10b981;--warn:#f59e0b;--err:#ef4444;--tx:#e2e8f0;--mu:#64748b;--mono:'Space Mono',monospace;--sans:'Syne',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,196,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,196,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+.o1{width:400px;height:400px;background:rgba(0,196,255,.07);top:-100px;right:-100px}
+.o2{width:300px;height:300px;background:rgba(124,58,237,.07);bottom:100px;left:-80px}
+
+/* layout */
+.shell{position:relative;z-index:1;display:grid;grid-template-columns:240px 1fr;grid-template-rows:auto 1fr;min-height:100vh}
+header{grid-column:1/-1;padding:14px 24px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:14px;background:rgba(10,14,26,.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.logo{width:34px;height:34px;background:var(--ac);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;color:#000;flex-shrink:0}
+.badge{font-family:var(--mono);font-size:11px;color:var(--ac);border:1px solid var(--ac);border-radius:4px;padding:3px 8px;opacity:.8;margin-left:auto}
+aside{border-right:1px solid var(--bd);padding:20px 0;background:rgba(17,24,39,.6);overflow-y:auto}
+main{display:flex;flex-direction:column;overflow:hidden;height:calc(100vh - 57px)}
+
+/* sidebar */
+.slabel{font-family:var(--mono);font-size:10px;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;padding:0 16px}
+.mbtn{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--mu);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:2px;text-align:left}
+.mbtn:hover{background:var(--s2);color:var(--tx)}
+.mbtn.active{background:rgba(0,196,255,.07);border-color:var(--ac);color:var(--ac)}
+.micon{width:28px;height:28px;border-radius:6px;background:var(--s);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.mbtn.active .micon{background:rgba(0,196,255,.1)}
+.divider{height:1px;background:var(--bd);margin:0 16px 20px}
+.pbar-wrap{padding:6px 12px;margin-bottom:4px}
+.pbar-label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--mu);margin-bottom:5px}
+.pbar-label span:last-child{color:var(--ac3)}
+.pbar{height:3px;background:var(--bd);border-radius:2px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--ac),var(--ac3));border-radius:2px;transition:width .6s ease}
+.stat{font-family:var(--mono);font-size:11px;color:var(--mu);margin-bottom:6px;padding:0 16px}
+.stat span{color:var(--ac)}
+
+/* panels */
+.panel{display:none;flex-direction:column;flex:1;padding:24px;gap:16px;overflow-y:auto}
+.panel.active{display:flex}
+.ptitle{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.ptitle span{color:var(--ac)}
+.psub{font-family:var(--mono);font-size:11px;color:var(--mu);margin-top:4px}
+
+/* card */
+.card{background:var(--s);border:1px solid var(--bd);border-radius:12px;padding:18px}
+
+/* chat */
+.chat-wrap{display:flex;flex-direction:column;flex:1;min-height:0}
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-right:4px}
+.msg{display:flex;gap:10px;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.avatar{width:30px;height:30px;border-radius:7px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.ai .avatar{background:rgba(0,196,255,.1);border:1px solid rgba(0,196,255,.2)}
+.usr .avatar{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2)}
+.msg-body{flex:1;min-width:0}
+.sender{font-family:var(--mono);font-size:10px;margin-bottom:5px}
+.ai .sender{color:var(--ac)}.usr .sender{color:#a78bfa}
+.content{font-size:14px;line-height:1.7;color:var(--tx);word-break:break-word}
+.content pre{background:#0d1321;border:1px solid var(--bd);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--mono);font-size:12px;color:#a5f3fc;margin:10px 0;white-space:pre-wrap}
+.content code{font-family:var(--mono);font-size:12px;background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:1px 6px;color:var(--ac3)}
+.input-area{padding-top:14px;border-top:1px solid var(--bd);margin-top:14px}
+.qps{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.qp{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--bd);background:var(--s2);color:var(--mu);font-family:var(--mono);cursor:pointer;white-space:nowrap;transition:all .15s}
+.qp:hover{border-color:var(--ac);color:var(--ac)}
+.input-row{display:flex;gap:10px;align-items:flex-end}
+textarea{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:10px;color:var(--tx);font-family:var(--sans);font-size:14px;padding:11px 13px;resize:none;min-height:46px;max-height:140px;line-height:1.5;outline:none;transition:border-color .15s}
+textarea:focus{border-color:var(--ac)}
+textarea::placeholder{color:var(--mu)}
+.send{width:46px;height:46px;border-radius:10px;border:none;background:var(--ac);color:#000;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.send:hover{background:#00aadd}
+.send:disabled{opacity:.4;cursor:not-allowed}
+.typing{display:flex;gap:4px;align-items:center;padding:6px 0}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--ac);animation:blink 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+/* controls row */
+.ctrls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+select{background:var(--s2);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-family:var(--mono);font-size:12px;padding:7px 10px;outline:none;cursor:pointer}
+select:focus{border-color:var(--ac)}
+.btn-p{padding:8px 18px;border-radius:8px;border:none;background:var(--ac);color:#000;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.btn-p:hover{background:#00aadd}
+.btn-o{padding:7px 16px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--tx);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-o:hover{border-color:var(--ac);color:var(--ac)}
+
+/* empty state */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;gap:10px;color:var(--mu);border:1px dashed var(--bd);border-radius:12px}
+.empty-icon{font-size:32px;opacity:.4}
+.empty p{font-size:13px;font-family:var(--mono)}
+
+/* flashcard */
+.fc-perspective{perspective:1000px;max-width:520px;margin:0 auto;width:100%}
+.fc{width:100%;height:220px;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);cursor:pointer}
+.fc.flipped{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
+.fc-front{background:var(--s);border:1px solid var(--ac)}
+.fc-back{background:var(--s2);border:1px solid var(--ac3);transform:rotateY(180deg)}
+.fc-lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--mu);margin-bottom:12px}
+.fc-q{font-size:15px;font-weight:700;line-height:1.5}
+.fc-a{font-size:13px;line-height:1.7}
+.fc-hint{font-family:var(--mono);font-size:11px;color:var(--mu);margin-top:14px}
+.fc-btns{display:flex;justify-content:center;gap:12px}
+.fc-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--tx);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.fc-btn:hover{border-color:var(--ac);color:var(--ac)}
+.fc-btn.good{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--ac3)}
+.scores{display:flex;gap:10px;flex-wrap:wrap}
+.pill{padding:5px 14px;border-radius:20px;font-family:var(--mono);font-size:12px;display:flex;align-items:center;gap:6px}
+.pg{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:var(--ac3)}
+.py{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--warn)}
+.pr{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--err)}
+
+/* topic grid */
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.topic-chip{padding:9px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--tx);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;text-align:left;display:flex;align-items:center;gap:8px}
+.topic-chip:hover,.topic-chip.sel{border-color:var(--ac);color:var(--ac);background:rgba(0,196,255,.07)}
+.tdot{width:6px;height:6px;border-radius:50%;background:var(--bd);flex-shrink:0;transition:background .15s}
+.topic-chip.sel .tdot{background:var(--ac)}
+
+/* week cards */
+.week-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.wcard{background:var(--s);border:1px solid var(--bd);border-radius:10px;padding:16px;transition:border-color .15s;cursor:default}
+.wcard:hover{border-color:var(--ac)}
+.wnum{font-family:var(--mono);font-size:10px;color:var(--mu);margin-bottom:6px}
+.wtitle{font-size:14px;font-weight:700;margin-bottom:10px}
+.wtags{display:flex;flex-wrap:wrap;gap:5px}
+.wtag{font-size:10px;padding:2px 7px;border-radius:4px;font-family:var(--mono)}
+
+/* API key banner */
+#key-banner{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#key-banner input{flex:1;min-width:260px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-family:var(--mono);font-size:12px;padding:8px 12px;outline:none}
+#key-banner input:focus{border-color:var(--ac)}
+
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="orb o1"></div>
+<div class="orb o2"></div>
+
+<div class="shell">
+<!-- HEADER -->
+<header>
+  <div class="logo">AG</div>
+  <span style="font-size:15px;font-weight:800;letter-spacing:-.3px"><span style="color:var(--ac)">ArcGIS</span> SDK Prep</span>
+  <div class="badge">8-WEEK PLAN</div>
+</header>
+
+<!-- SIDEBAR -->
+<aside>
+  <div style="padding:0 16px;margin-bottom:24px">
+    <div class="slabel">Modes</div>
+    <button class="mbtn active" onclick="switchMode('chat')" id="btn-chat"><span class="micon">💬</span>AI Interview Coach</button>
+    <button class="mbtn" onclick="switchMode('flashcards')" id="btn-flashcards"><span class="micon">🃏</span>Flashcards</button>
+    <button class="mbtn" onclick="switchMode('plan')" id="btn-plan"><span class="micon">📅</span>8-Week Plan</button>
+    <button class="mbtn" onclick="switchMode('topics')" id="btn-topics"><span class="micon">🗺️</span>Topic Explorer</button>
+  </div>
+  <div class="divider"></div>
+  <div style="padding:0 0 20px">
+    <div class="slabel">Your Progress</div>
+    <div class="pbar-wrap"><div class="pbar-label"><span>SDK Concepts</span><span id="ps">0%</span></div><div class="pbar"><div class="pfill" id="fs" style="width:0%"></div></div></div>
+    <div class="pbar-wrap"><div class="pbar-label"><span>Coding</span><span id="pc">0%</span></div><div class="pbar"><div class="pfill" id="fc-fill" style="width:0%"></div></div></div>
+    <div class="pbar-wrap"><div class="pbar-label"><span>System Design</span><span id="pd">0%</span></div><div class="pbar"><div class="pfill" id="fd" style="width:0%"></div></div></div>
+    <div class="pbar-wrap"><div class="pbar-label"><span>Behavioral</span><span id="pb">0%</span></div><div class="pbar"><div class="pfill" id="fb" style="width:0%"></div></div></div>
+  </div>
+  <div class="divider"></div>
+  <div class="slabel" style="margin-top:4px">Session Stats</div>
+  <div class="stat">Questions: <span id="sq">0</span></div>
+  <div class="stat">Cards reviewed: <span id="sc" style="color:var(--ac3)">0</span></div>
+  <div class="stat">Topics explored: <span id="st" style="color:#a78bfa">0</span></div>
+</aside>
+
+<!-- MAIN -->
+<main>
+
+<!-- ── CHAT ── -->
+<div class="panel active" id="panel-chat">
+  <div id="key-banner">
+    <span style="font-size:13px;color:var(--err);font-weight:700;flex-shrink:0">🔑 API Key</span>
+    <input type="password" id="api-key" placeholder="Paste your Anthropic API key here (sk-ant-…)" />
+    <button class="btn-p" onclick="saveKey()">Save</button>
+    <span style="font-family:var(--mono);font-size:10px;color:var(--mu)">Stored in memory only · never sent anywhere except Anthropic</span>
+  </div>
+
+  <div>
+    <div class="ptitle">AI <span>Interview Coach</span></div>
+    <div class="psub">// powered by Claude · real interview simulation · expert feedback</div>
+  </div>
+
+  <div class="ctrls">
+    <select id="chat-mode">
+      <option value="sdk">SDK Concept Drill</option>
+      <option value="coding">Coding Round</option>
+      <option value="design">System Design</option>
+      <option value="behavioral">Behavioral / STAR</option>
+      <option value="free">Free Conversation</option>
+    </select>
+    <button class="btn-p" onclick="startSession()">▶ Start Session</button>
+    <button class="btn-o" onclick="clearChat()">Clear</button>
+  </div>
+
+  <div class="card chat-wrap" style="flex:1;min-height:0">
+    <div class="msgs" id="msgs">
+      <div class="empty"><div class="empty-icon">🎯</div><p>Paste your API key above, pick a mode, then click Start Session.</p></div>
+    </div>
+    <div class="input-area">
+      <div class="qps">
+        <div class="qp" onclick="sendQuick('Quiz me on MapView lifecycle')">MapView lifecycle</div>
+        <div class="qp" onclick="sendQuick('What is a LayerView and when would I use it?')">LayerView</div>
+        <div class="qp" onclick="sendQuick('Give me a FeatureLayer coding challenge')">Coding challenge</div>
+        <div class="qp" onclick="sendQuick('Ask me a behavioral STAR question')">Behavioral Q</div>
+        <div class="qp" onclick="sendQuick('Design a real-time asset tracking map')">System design</div>
+      </div>
+      <div class="input-row">
+        <textarea id="user-input" placeholder="Type your answer, question, or code…" rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send" id="send-btn" onclick="sendMessage()">↑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FLASHCARDS ── -->
+<div class="panel" id="panel-flashcards">
+  <div><div class="ptitle">SDK <span>Flashcards</span></div><div class="psub">// click card to flip · AI-generated from any topic</div></div>
+  <div class="ctrls">
+    <select id="fc-topic">
+      <option>MapView lifecycle</option>
+      <option>FeatureLayer loading and querying</option>
+      <option>LayerViews and client-side filtering</option>
+      <option>Renderers and symbols</option>
+      <option>Geometry engine operations</option>
+      <option>Spatial references and projections</option>
+      <option>View constraints and LODs</option>
+      <option>Popups and popup templates</option>
+      <option>Widgets and custom widget creation</option>
+      <option>Performance optimization</option>
+      <option>WebMap and portal items</option>
+      <option>Feature editing with applyEdits</option>
+    </select>
+    <button class="btn-p" onclick="generateCard()">Generate Card</button>
+  </div>
+  <div class="scores">
+    <div class="pill pg">✓ Got it: <strong id="fgood">0</strong></div>
+    <div class="pill py">~ Almost: <strong id="falmost">0</strong></div>
+    <div class="pill pr">✗ Study: <strong id="fbad">0</strong></div>
+  </div>
+  <div class="fc-perspective">
+    <div class="fc" id="flashcard" onclick="flipCard()">
+      <div class="fc-face fc-front">
+        <div class="fc-lbl">QUESTION</div>
+        <div class="fc-q" id="fc-q">Click "Generate Card" to start</div>
+        <div class="fc-hint">click to flip ↻</div>
+      </div>
+      <div class="fc-face fc-back">
+        <div class="fc-lbl">ANSWER</div>
+        <div class="fc-a" id="fc-a">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="fc-btns">
+    <button class="fc-btn" onclick="rateCard('bad')">✗ Need more study</button>
+    <button class="fc-btn" onclick="rateCard('almost')">~ Almost got it</button>
+    <button class="fc-btn good" onclick="rateCard('good')">✓ Got it!</button>
+  </div>
+  <div class="card" id="fc-exp" style="display:none">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--ac);margin-bottom:10px;letter-spacing:1px">DEEPER EXPLANATION</div>
+    <div id="fc-exp-text" style="font-size:13px;line-height:1.8"></div>
+  </div>
+</div>
+
+<!-- ── PLAN ── -->
+<div class="panel" id="panel-plan">
+  <div><div class="ptitle">8-Week <span>Study Plan</span></div><div class="psub">// product engineer track · arcgis maps sdk js</div></div>
+  <div class="week-grid">
+    <div class="wcard"><div class="wnum">WEEK 01–02</div><div class="wtitle">SDK Foundations</div><div class="wtags"><span class="wtag" style="background:rgba(0,196,255,.1);color:var(--ac);border:1px solid rgba(0,196,255,.2)">MapView lifecycle</span><span class="wtag" style="background:rgba(0,196,255,.1);color:var(--ac);border:1px solid rgba(0,196,255,.2)">Layer types</span><span class="wtag" style="background:rgba(0,196,255,.1);color:var(--ac);border:1px solid rgba(0,196,255,.2)">Renderers</span><span class="wtag" style="background:rgba(0,196,255,.1);color:var(--ac);border:1px solid rgba(0,196,255,.2)">Spatial refs</span></div></div>
+    <div class="wcard"><div class="wnum">WEEK 03–04</div><div class="wtitle">Coding Practice</div><div class="wtags"><span class="wtag" style="background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2)">FeatureLayer queries</span><span class="wtag" style="background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2)">Custom widgets</span><span class="wtag" style="background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2)">Performance</span></div></div>
+    <div class="wcard"><div class="wnum">WEEK 05–06</div><div class="wtitle">System Design</div><div class="wtags"><span class="wtag" style="background:rgba(16,185,129,.1);color:var(--ac3);border:1px solid rgba(16,185,129,.2)">Real-time maps</span><span class="wtag" style="background:rgba(16,185,129,.1);color:var(--ac3);border:1px solid rgba(16,185,129,.2)">Tile strategy</span><span class="wtag" style="background:rgba(16,185,129,.1);color:var(--ac3);border:1px solid rgba(16,185,129,.2)">Offline apps</span></div></div>
+    <div class="wcard"><div class="wnum">WEEK 07</div><div class="wtitle">Behavioral</div><div class="wtags"><span class="wtag" style="background:rgba(245,158,11,.1);color:var(--warn);border:1px solid rgba(245,158,11,.2)">STAR method</span><span class="wtag" style="background:rgba(245,158,11,.1);color:var(--warn);border:1px solid rgba(245,158,11,.2)">Cross-functional</span><span class="wtag" style="background:rgba(245,158,11,.1);color:var(--warn);border:1px solid rgba(245,158,11,.2)">Ambiguity</span></div></div>
+    <div class="wcard"><div class="wnum">WEEK 08</div><div class="wtitle">Mock Loop + Polish</div><div class="wtags"><span class="wtag" style="background:rgba(0,196,255,.1);color:var(--ac);border:1px solid rgba(0,196,255,.2)">Full mock rounds</span><span class="wtag" style="background:rgba(16,185,129,.1);color:var(--ac3);border:1px solid rgba(16,185,129,.2)">Resume review</span><span class="wtag" style="background:rgba(245,158,11,.1);color:var(--warn);border:1px solid rgba(245,158,11,.2)">Weak spots</span></div></div>
+  </div>
+  <div class="card">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--ac);margin-bottom:12px;letter-spacing:1px">AI STUDY ASSISTANT</div>
+    <div class="qps">
+      <div class="qp" onclick="planQ(\"Give me today's study task for Week 1\")">Today's task (Week 1)</div>
+      <div class="qp" onclick="planQ('What are the most important ArcGIS SDK topics for a product engineer interview?')">Key topics</div>
+      <div class="qp" onclick="planQ('Generate a FeatureLayer coding exercise I can do right now')">Coding exercise now</div>
+      <div class="qp" onclick="planQ('What system design questions should I expect for a GIS product engineer role?')">Design questions</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOPICS ── -->
+<div class="panel" id="panel-topics">
+  <div><div class="ptitle">Topic <span>Explorer</span></div><div class="psub">// select a topic · Claude gives a deep-dive + interview questions</div></div>
+  <div class="card">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--mu);margin-bottom:12px;letter-spacing:1px">CORE SDK TOPICS</div>
+    <div class="topic-grid" id="topic-grid"></div>
+  </div>
+  <div class="card" id="topic-out" style="display:none">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--ac);margin-bottom:12px;letter-spacing:1px" id="topic-out-label">TOPIC</div>
+    <div id="topic-out-text" style="font-size:13px;line-height:1.8;white-space:pre-wrap"></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ── API KEY ────────────────────────────────────────────────────────────────
+let API_KEY = '';
+function saveKey() {
+  API_KEY = document.getElementById('api-key').value.trim();
+  if (API_KEY) {
+    document.getElementById('key-banner').style.borderColor = 'rgba(16,185,129,.4)';
+    document.getElementById('key-banner').style.background = 'rgba(16,185,129,.05)';
+    document.querySelector('#key-banner span').textContent = '✓ Key saved';
+    document.querySelector('#key-banner span').style.color = 'var(--ac3)';
+  }
+}
+
+// ── CLAUDE API ─────────────────────────────────────────────────────────────
+async function callClaude(messages, systemPrompt) {
+  if (!API_KEY) throw new Error('No API key');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': API_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-allow-browser': 'true'
+    },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: systemPrompt, messages })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content?.map(b => b.text || '').join('') || '';
+}
+
+// ── PROMPTS ────────────────────────────────────────────────────────────────
+const PROMPTS = {
+  sdk: `You are a senior ArcGIS Maps SDK for JavaScript engineer conducting a technical interview. Ask focused questions about MapView, SceneView, layers, renderers, symbols, geometry engine, spatial references, popups, widgets, view constraints, LODs, and performance. Ask ONE question at a time. After the candidate answers give specific constructive feedback, then ask the next question.`,
+  coding: `You are a technical interviewer for an ArcGIS Maps SDK for JavaScript product engineer role. Give real coding challenges. Format code in markdown code blocks. After each answer review it like a senior engineer: correctness, API idioms, edge cases, performance.`,
+  design: `You are a staff engineer interviewing a product engineer candidate. Give GIS system design questions: real-time tracking, large dataset rendering, offline apps, tile strategy, scale-dependent rendering. Guide through requirements → architecture → trade-offs. Give structured feedback.`,
+  behavioral: `You are a hiring manager for a GIS software product engineer role. Ask behavioral questions using STAR method. Focus on: debugging complex issues, cross-functional collaboration, API design decisions, ambiguity, delivering under pressure. Give feedback on story structure.`,
+  free: `You are an expert ArcGIS Maps SDK for JavaScript engineer and career coach helping someone prepare for a product engineer interview. Be thorough, specific, and encouraging. Use code examples where helpful.`
+};
+
+const STARTERS = {
+  sdk: "Let's begin the SDK concept drill. One question at a time with feedback after each.\n\nFirst question: Explain the difference between a MapView and a SceneView. When would you choose one over the other, and what are the key architectural differences?",
+  coding: "Welcome to the coding round. Real API challenges, reviewed like a senior engineer.\n\nChallenge 1: Write a function that loads a FeatureLayer from a given URL, applies a definition expression to filter features where status = 'active', and returns the first 50 features' attributes. Use async/await and handle errors.",
+  design: "System design session.\n\nScenario: Design a real-time field operations map for a utility company. 500 field workers update location every 10 seconds. Dispatchers see all workers live with status. Walk me through your architecture — start with requirements.",
+  behavioral: "Behavioral round — use STAR: Situation, Task, Action, Result.\n\nFirst question: Tell me about a time you had to debug a complex issue in a map application affecting users in production. What was your process?",
+  free: "Hey! I'm your ArcGIS SDK prep coach. Ask me anything — concept explanations, coding problems, mock questions, system design, or career advice. What do you want to work on?"
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let chatHistory = [];
+let isLoading = false;
+let fcGood = 0, fcAlmost = 0, fcBad = 0, fcCards = 0;
+let fcFlipped = false, fcCurrentAnswer = '', fcCurrentExp = '';
+let qCount = 0;
+let topicsExplored = new Set();
+
+// ── MODE SWITCH ────────────────────────────────────────────────────────────
+function switchMode(m) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mbtn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + m).classList.add('active');
+  document.getElementById('btn-' + m).classList.add('active');
+}
+
+// ── CHAT ───────────────────────────────────────────────────────────────────
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function fmtMsg(text) {
+  text = text.replace(/```[\w]*\n?([\s\S]*?)```/g, (_,c) => `<pre>${esc(c.trim())}</pre>`);
+  text = text.replace(/`([^`]+)`/g, (_,c) => `<code>${esc(c)}</code>`);
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\n/g, '<br>');
+  return text;
+}
+
+function addMsg(role, text) {
+  const msgs = document.getElementById('msgs');
+  const empty = msgs.querySelector('.empty');
+  if (empty) empty.remove();
+  const isAI = role !== 'user';
+  const div = document.createElement('div');
+  div.className = `msg ${isAI ? 'ai' : 'usr'}`;
+  div.innerHTML = `
+    <div class="avatar">${isAI ? '🤖' : '👤'}</div>
+    <div class="msg-body">
+      <div class="sender">${isAI ? 'COACH · CLAUDE' : 'YOU'}</div>
+      <div class="content">${fmtMsg(text)}</div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addTyping() {
+  const msgs = document.getElementById('msgs');
+  const d = document.createElement('div');
+  d.className = 'msg ai'; d.id = 'typing';
+  d.innerHTML = `<div class="avatar">🤖</div><div class="msg-body"><div class="sender" style="color:var(--ac)">COACH · CLAUDE</div><div class="typing"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+}
+function removeTyping() { const t = document.getElementById('typing'); if(t) t.remove(); }
+
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text || isLoading) return;
+  if (!API_KEY) { alert('Please paste your Anthropic API key at the top first.'); return; }
+  input.value = ''; autoResize(input);
+  isLoading = true;
+  document.getElementById('send-btn').disabled = true;
+  addMsg('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  addTyping();
+  try {
+    const mode = document.getElementById('chat-mode').value;
+    const reply = await callClaude(chatHistory, PROMPTS[mode] || PROMPTS.free);
+    removeTyping();
+    addMsg('assistant', reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+    qCount++;
+    document.getElementById('sq').textContent = qCount;
+    updateProgress();
+  } catch(e) {
+    removeTyping();
+    addMsg('assistant', `⚠ Error: ${e.message}`);
+  }
+  isLoading = false;
+  document.getElementById('send-btn').disabled = false;
+}
+
+function startSession() {
+  chatHistory = [];
+  document.getElementById('msgs').innerHTML = '';
+  const mode = document.getElementById('chat-mode').value;
+  const starter = STARTERS[mode] || STARTERS.free;
+  addMsg('assistant', starter);
+  chatHistory.push({ role: 'assistant', content: starter });
+}
+
+function clearChat() {
+  chatHistory = [];
+  document.getElementById('msgs').innerHTML = '<div class="empty"><div class="empty-icon">🎯</div><p>Pick a mode and click "Start Session" or type below.</p></div>';
+}
+
+function sendQuick(t) { document.getElementById('user-input').value = t; sendMessage(); }
+function handleKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,140)+'px'; }
+
+// ── FLASHCARDS ─────────────────────────────────────────────────────────────
+async function generateCard() {
+  if (!API_KEY) { alert('Please paste your API key first.'); return; }
+  const topic = document.getElementById('fc-topic').value;
+  fcFlipped = false; fcCurrentAnswer = ''; fcCurrentExp = '';
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('fc-q').textContent = 'Generating…';
+  document.getElementById('fc-a').textContent = '—';
+  document.getElementById('fc-exp').style.display = 'none';
+  try {
+    const reply = await callClaude([{ role:'user', content:`Generate a flashcard about: ${topic}\n\nReturn ONLY valid JSON, no markdown:\n{"question":"...","answer":"...","explanation":"..."}` }],
+      'You are an ArcGIS Maps SDK for JavaScript expert. Return only valid JSON, no markdown fences.');
+    const d = JSON.parse(reply.replace(/```json|```/g,'').trim());
+    document.getElementById('fc-q').textContent = d.question || '—';
+    document.getElementById('fc-a').textContent = d.answer || '—';
+    fcCurrentAnswer = d.answer || '';
+    fcCurrentExp = d.explanation || '';
+    fcCards++; document.getElementById('sc').textContent = fcCards;
+  } catch(e) {
+    document.getElementById('fc-q').textContent = 'Error generating card. Check your API key.';
+  }
+}
+
+function flipCard() {
+  if (!fcCurrentAnswer) return;
+  fcFlipped = !fcFlipped;
+  document.getElementById('flashcard').classList.toggle('flipped', fcFlipped);
+  if (fcFlipped && fcCurrentExp) {
+    document.getElementById('fc-exp-text').textContent = fcCurrentExp;
+    document.getElementById('fc-exp').style.display = 'block';
+  }
+}
+
+function rateCard(r) {
+  if (r==='good') { fcGood++; document.getElementById('fgood').textContent = fcGood; }
+  else if (r==='almost') { fcAlmost++; document.getElementById('falmost').textContent = fcAlmost; }
+  else { fcBad++; document.getElementById('fbad').textContent = fcBad; }
+  updateProgress();
+  generateCard();
+}
+
+// ── TOPICS ─────────────────────────────────────────────────────────────────
+const TOPICS = [
+  {name:'MapView Lifecycle',key:'MapView lifecycle including initialization, when-view-ready, and destroy patterns'},
+  {name:'FeatureLayer',key:'FeatureLayer: loading, querying, definition expressions, feature reduction'},
+  {name:'LayerView',key:'LayerViews: what they are, how to use them, highlight, client-side filtering'},
+  {name:'Renderers',key:'Renderers and symbols: SimpleRenderer, UniqueValueRenderer, ClassBreaksRenderer'},
+  {name:'Geometry Engine',key:'geometryEngine: intersection, buffer, contains, distance operations'},
+  {name:'Spatial References',key:'Spatial references and projections, WGS84 vs Web Mercator, projection engine'},
+  {name:'View Constraints',key:'MapView constraints: minScale, maxScale, LODs, effectiveLODs — including the bug where maxScale finer than finest LOD causes effective scale inversion'},
+  {name:'Popups',key:'Popups: popup template, custom content, actions, docking'},
+  {name:'Widgets',key:'Built-in and custom widgets: Widget base class, reactive, rendering'},
+  {name:'Performance',key:'Performance optimization: feature reduction, pagination, client-side queries, tile caching'},
+  {name:'WebMap',key:'WebMap and WebScene: loading, portal items, operational layers'},
+  {name:'Editing',key:'Feature editing: Editor widget, FeatureForm, applyEdits'},
+];
+
+let selectedTopic = null;
+
+function buildTopics() {
+  const grid = document.getElementById('topic-grid');
+  TOPICS.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'topic-chip';
+    btn.id = 'tc-' + t.name;
+    btn.innerHTML = `<div class="tdot"></div>${t.name}`;
+    btn.onclick = () => exploreTopic(t);
+    grid.appendChild(btn);
+  });
+}
+
+async function exploreTopic(t) {
+  if (!API_KEY) { alert('Please paste your API key first.'); return; }
+  document.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('sel'));
+  document.getElementById('tc-' + t.name).classList.add('sel');
+  selectedTopic = t.name;
+  const out = document.getElementById('topic-out');
+  out.style.display = 'block';
+  document.getElementById('topic-out-label').textContent = `LOADING: ${t.name.toUpperCase()}…`;
+  document.getElementById('topic-out-text').textContent = '';
+  topicsExplored.add(t.name);
+  document.getElementById('st').textContent = topicsExplored.size;
+  try {
+    const reply = await callClaude([{ role:'user', content:`Give me a structured interview-focused overview of: ${t.key}\n\nFormat:\n1. Core concept (2-3 sentences)\n2. Key API classes/methods\n3. Common interview questions on this topic (3 questions)\n4. One gotcha or edge case developers often miss` }],
+      'You are a senior ArcGIS Maps SDK for JavaScript engineer. Give precise, interview-focused technical overviews.');
+    document.getElementById('topic-out-label').textContent = `TOPIC: ${t.name.toUpperCase()}`;
+    document.getElementById('topic-out-text').textContent = reply;
+    updateProgress();
+  } catch(e) {
+    document.getElementById('topic-out-text').textContent = 'Error loading topic: ' + e.message;
+  }
+}
+
+function planQ(text) { switchMode('chat'); setTimeout(() => { document.getElementById('user-input').value = text; sendMessage(); }, 100); }
+
+// ── PROGRESS ───────────────────────────────────────────────────────────────
+function updateProgress() {
+  const set = (id, fill, pct) => {
+    const v = Math.min(100, pct);
+    document.getElementById(id).textContent = v + '%';
+    document.getElementById(fill).style.width = v + '%';
+  };
+  set('ps','fs', Math.min(100, topicsExplored.size * 8 + fcGood * 5));
+  set('pc','fc-fill', Math.min(100, qCount * 5));
+  set('pd','fd', Math.min(100, qCount * 3));
+  set('pb','fb', Math.min(100, qCount * 4));
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+buildTopics();
+</script>
+</body>
+</html>
