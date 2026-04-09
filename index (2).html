@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArcGIS Maps SDK — PE Prep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface2: #18181f;
+  --border: #2a2a35;
+  --border2: #3a3a48;
+  --accent: #6c63ff;
+  --accent2: #a78bfa;
+  --green: #22d3a0;
+  --amber: #f59e0b;
+  --red: #f87171;
+  --text: #f0eeff;
+  --text2: #9a96b8;
+  --text3: #5a5870;
+  --mono: 'IBM Plex Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --body: 'DM Sans', sans-serif;
+  --radius: 10px;
+  --radius-lg: 16px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(108,99,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(108,99,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+/* HEADER */
+header { margin-bottom: 2.5rem; }
+.logo { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+.logo-mark {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 14px; font-weight: 500; color: white;
+}
+.logo-text { font-family: var(--display); font-size: 15px; font-weight: 700; letter-spacing: 0.05em; color: var(--text2); text-transform: uppercase; }
+h1 {
+  font-family: var(--display);
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+h1 span { color: var(--accent2); }
+.subtitle { font-size: 15px; color: var(--text2); font-weight: 300; }
+
+/* METRICS */
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 2rem; }
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  text-align: center;
+}
+.metric-val { font-family: var(--mono); font-size: 24px; font-weight: 500; color: var(--accent2); }
+.metric-lbl { font-size: 11px; color: var(--text3); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* NAV */
+.nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 2rem; }
+.nav-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.nav-btn:hover { border-color: var(--border2); color: var(--text); }
+.nav-btn.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 500; }
+
+/* SCREENS */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+.card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+h2 { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 1.25rem; }
+h3 { font-family: var(--display); font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+
+/* BADGES */
+.badge {
+  display: inline-block; font-size: 10px; font-weight: 500;
+  padding: 3px 8px; border-radius: 4px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  font-family: var(--mono);
+}
+.badge-blue { background: rgba(108,99,255,0.15); color: var(--accent2); border: 1px solid rgba(108,99,255,0.3); }
+.badge-amber { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+.badge-green { background: rgba(34,211,160,0.12); color: var(--green); border: 1px solid rgba(34,211,160,0.25); }
+.badge-red { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+
+/* CODE */
+pre {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  color: #c9c5ff;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin: 10px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+code { font-family: var(--mono); font-size: 12px; background: rgba(108,99,255,0.12); color: var(--accent2); padding: 2px 6px; border-radius: 4px; }
+
+/* HINT / ANSWER */
+.hint-box {
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #fcd34d;
+  margin: 8px 0;
+  line-height: 1.6;
+}
+.answer-box {
+  background: rgba(34,211,160,0.08);
+  border: 1px solid rgba(34,211,160,0.2);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--green);
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+/* BUTTONS */
+button {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+button:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: white; }
+button.primary:hover { background: #7c73ff; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+/* CHALLENGE */
+.ch-complaint {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text3);
+  margin-bottom: 10px;
+  padding-left: 10px;
+  border-left: 2px solid var(--border2);
+}
+.ch-toggle { cursor: pointer; font-size: 12px; color: var(--accent2); background: transparent; border: 1px solid rgba(108,99,255,0.3); padding: 5px 12px; border-radius: var(--radius); }
+.ch-toggle:hover { background: rgba(108,99,255,0.1); }
+
+/* FLASHCARD */
+.flash-outer { perspective: 1000px; margin-bottom: 1rem; }
+.flash-inner {
+  min-height: 170px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 2rem;
+  transition: border-color 0.2s;
+  text-align: center;
+}
+.flash-inner:hover { border-color: var(--accent); }
+.flash-q { font-family: var(--display); font-size: 17px; font-weight: 500; color: var(--text); }
+.flash-tap { font-size: 12px; color: var(--text3); margin-top: 10px; font-family: var(--mono); }
+.flash-back { display: none; }
+.flash-stats { display: flex; gap: 20px; font-size: 13px; margin-top: 10px; font-family: var(--mono); }
+
+/* RULES */
+.rule-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rule-table th { text-align: left; padding: 8px 12px; color: var(--text3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 500; border-bottom: 1px solid var(--border); }
+.rule-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.rule-table tr:last-child td { border-bottom: none; }
+.rule-table tr:hover td { background: var(--surface2); }
+.rule-label { font-weight: 500; color: var(--text); }
+.rule-good { color: var(--green); font-family: var(--mono); font-size: 12px; }
+.rule-bad { color: var(--red); font-family: var(--mono); font-size: 12px; }
+
+/* WEEKS */
+.week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.week-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem;
+}
+.week-num { font-family: var(--mono); font-size: 10px; color: var(--accent2); margin-bottom: 5px; letter-spacing: 0.08em; }
+.week-title { font-family: var(--display); font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.topic-tag {
+  display: inline-block; font-size: 11px; padding: 2px 7px;
+  background: var(--surface2); color: var(--text3);
+  border-radius: 4px; margin: 2px 2px 2px 0;
+}
+.progress-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 12px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.4s; }
+
+/* MINDSET */
+.mindset-num {
+  font-family: var(--mono); font-size: 11px; color: var(--accent);
+  background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.2);
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.mindset-item { display: flex; gap: 14px; margin-bottom: 1rem; }
+.highlight-quote {
+  border-left: 3px solid var(--accent);
+  padding: 12px 16px;
+  background: rgba(108,99,255,0.06);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 14px;
+  color: var(--accent2);
+  font-style: italic;
+  line-height: 1.7;
+  margin: 12px 0;
+}
+
+/* PROGRESS DOT */
+.ch-done-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); flex-shrink: 0; margin-top: 5px;
+}
+
+@media (max-width: 600px) {
+  .metrics { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  h1 { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">
+      <div class="logo-mark">AG</div>
+      <div class="logo-text">ArcGIS SDK · PE Prep</div>
+    </div>
+    <h1>Debug. Learn. <span>Get hired.</span></h1>
+    <p class="subtitle">Offline practice app for ArcGIS Maps SDK for JavaScript — Product Engineer track</p>
+  </header>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-val" id="m-done">0</div><div class="metric-lbl">Challenges done</div></div>
+    <div class="metric"><div class="metric-val" id="m-score">0%</div><div class="metric-lbl">Solve rate</div></div>
+    <div class="metric"><div class="metric-val" id="m-cards">0</div><div class="metric-lbl">Cards reviewed</div></div>
+    <div class="metric"><div class="metric-val" id="m-streak">0</div><div class="metric-lbl">Day streak</div></div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="show('debug',this)">Debug challenges</button>
+    <button class="nav-btn" onclick="show('flash',this)">Flashcards</button>
+    <button class="nav-btn" onclick="show('rules',this)">Quick rules</button>
+    <button class="nav-btn" onclick="show('plan',this)">8-week plan</button>
+    <button class="nav-btn" onclick="show('mindset',this)">Mindset</button>
+  </nav>
+
+  <!-- DEBUG -->
+  <div class="screen active" id="screen-debug">
+    <h2>Debug challenges</h2>
+    <div id="ch-list"></div>
+  </div>
+
+  <!-- FLASHCARDS -->
+  <div class="screen" id="screen-flash">
+    <h2>Flashcards</h2>
+    <div class="btn-row" id="deck-btns" style="margin-bottom:1.5rem"></div>
+    <div class="flash-outer">
+      <div class="flash-inner" id="flash-card" onclick="flipCard()">
+        <div>
+          <div class="flash-q" id="flash-front">Pick a deck above to start</div>
+          <div class="flash-tap" id="flash-tap"></div>
+        </div>
+      </div>
+    </div>
+    <div class="flash-back" id="flash-back">
+      <div class="answer-box" id="flash-answer"></div>
+      <div class="btn-row">
+        <button class="primary" onclick="rateCard('got')">Got it</button>
+        <button onclick="rateCard('almost')">Almost</button>
+        <button onclick="rateCard('study')">Need study</button>
+      </div>
+    </div>
+    <div class="flash-stats">
+      <span style="color:var(--green)" id="fc-got">Got it: 0</span>
+      <span style="color:var(--amber)" id="fc-almost">Almost: 0</span>
+      <span style="color:var(--red)" id="fc-study">Need study: 0</span>
+    </div>
+  </div>
+
+  <!-- RULES -->
+  <div class="screen" id="screen-rules">
+    <h2>Quick rules reference</h2>
+    <div class="card">
+      <h3>Layer rules</h3>
+      <table class="rule-table">
+        <tr><th>Rule</th><th>Correct</th><th>Wrong</th></tr>
+        <tr><td class="rule-label">Add layers</td><td class="rule-good">map.add(layer)</td><td class="rule-bad">view.layers.add(layer)</td></tr>
+        <tr><td class="rule-label">Need queries + data</td><td class="rule-good">FeatureLayer</td><td class="rule-bad">GraphicsLayer</td></tr>
+        <tr><td class="rule-label">Manual shapes</td><td class="rule-good">GraphicsLayer (no url)</td><td class="rule-bad">GraphicsLayer with url</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Async rules</h3>
+      <table class="rule-table">
+        <tr><th>Rule</th><th>Correct</th><th>Wrong</th></tr>
+        <tr><td class="rule-label">Layer properties</td><td class="rule-good">Inside layer.when()</td><td class="rule-bad">Right after new FeatureLayer()</td></tr>
+        <tr><td class="rule-label">View ready</td><td class="rule-good">view.when(fn)</td><td class="rule-bad">After new MapView()</td></tr>
+        <tr><td class="rule-label">Zoom to layer</td><td class="rule-good">view.when → layer.when → goTo</td><td class="rule-bad">view.goTo(layer.fullExtent) direct</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Renderer + symbol rules</h3>
+      <table class="rule-table">
+        <tr><th>Rule</th><th>Correct</th><th>Wrong</th></tr>
+        <tr><td class="rule-label">Symbol in renderer</td><td class="rule-good">new SimpleMarkerSymbol({})</td><td class="rule-bad">{ type: "simple-marker" }</td></tr>
+        <tr><td class="rule-label">Import symbols</td><td class="rule-good">Add to require() + parameter</td><td class="rule-bad">Use without importing</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Query rules</h3>
+      <table class="rule-table">
+        <tr><th>Rule</th><th>Correct</th><th>Wrong</th></tr>
+        <tr><td class="rule-label">Field names</td><td class="rule-good">Verify from service ?f=json</td><td class="rule-bad">Guess from memory</td></tr>
+        <tr><td class="rule-label">Enable popup</td><td class="rule-good">disabled: false or remove block</td><td class="rule-bad">disabled: true</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 8-WEEK PLAN -->
+  <div class="screen" id="screen-plan">
+    <h2>8-week PE prep plan</h2>
+    <div class="week-grid" id="week-grid"></div>
+    <div class="card" style="margin-top:1rem">
+      <h3>Daily practice routine</h3>
+      <div class="mindset-item"><div class="mindset-num">1</div><div><p><strong style="color:var(--text)">30 min</strong> — One debug challenge. No hints for 5 minutes first.</p></div></div>
+      <div class="mindset-item"><div class="mindset-num">2</div><div><p><strong style="color:var(--text)">15 min</strong> — Flashcard deck. Rate honestly: got it / almost / need study.</p></div></div>
+      <div class="mindset-item"><div class="mindset-num">3</div><div><p><strong style="color:var(--text)">15 min</strong> — Read one page of Esri SDK docs. No shortcuts.</p></div></div>
+    </div>
+  </div>
+
+  <!-- MINDSET -->
+  <div class="screen" id="screen-mindset">
+    <h2>Mindset guide</h2>
+    <div class="card">
+      <h3>Why code feels overwhelming</h3>
+      <p>It is not ability — it is exposure time. Your brain has not seen enough patterns yet to recognize them automatically. When an expert sees broken code, they do not think harder. They have seen that mistake 50 times. You have not yet. That is the entire gap — and it closes with repetition, not talent.</p>
+    </div>
+    <div class="card">
+      <h3>The shortcut trap</h3>
+      <p>You can copy code that works without knowing why it works. When it breaks — and it always breaks — you have no mental model to debug from. In the PE role, customers bring you broken code every day. You cannot Google your way out of every support ticket.</p>
+      <div class="highlight-quote">"The PE role is built on the ability to reason through unfamiliar problems — which only comes from real understanding, not copied solutions."</div>
+    </div>
+    <div class="card">
+      <h3>How confidence actually builds</h3>
+      <p style="margin-bottom:12px">There is no version where you skip the confusion phase:</p>
+      <div class="mindset-item"><div class="mindset-num">1</div><div><p><strong style="color:var(--text)">Confusion</strong> — You see code you do not understand</p></div></div>
+      <div class="mindset-item"><div class="mindset-num">2</div><div><p><strong style="color:var(--text)">Struggle</strong> — You sit with it, make guesses, reason through it</p></div></div>
+      <div class="mindset-item"><div class="mindset-num">3</div><div><p><strong style="color:var(--text)">Small win</strong> — You find the bug or understand one piece</p></div></div>
+      <div class="mindset-item"><div class="mindset-num">4</div><div><p><strong style="color:var(--text)">Repeat 100×</strong> — Each cycle builds a new pattern in your brain</p></div></div>
+      <div class="highlight-quote">"The discomfort IS the work."</div>
+    </div>
+    <div class="card">
+      <h3>4-step method for reading any code</h3>
+      <div class="mindset-item"><div class="mindset-num">1</div><div><p>Point at <strong style="color:var(--text)">one line</strong>. Just one. Do not try to read everything at once.</p></div></div>
+      <div class="mindset-item"><div class="mindset-num">2</div><div><p><strong style="color:var(--text)">Say it out loud</strong> in plain English — even badly. The attempt activates reasoning.</p></div></div>
+      <div class="mindset-item"><div class="mindset-num">3</div><div><p><strong style="color:var(--text)">Change one thing</strong> and see what breaks. This is how professionals learn APIs.</p></div></div>
+      <div class="mindset-item"><div class="mindset-num">4</div><div><p>Sit with not-knowing for <strong style="color:var(--text)">5 minutes</strong> before asking for help. The struggle builds memory.</p></div></div>
+      <div class="highlight-quote">"A wrong guess you reasoned through is 10× more valuable than a right answer someone handed you."</div>
+    </div>
+    <div class="card">
+      <h3>Your progress so far</h3>
+      <table class="rule-table">
+        <tr><th>#</th><th>Topic</th><th>Result</th></tr>
+        <tr><td class="rule-label">#1</td><td style="font-size:13px;color:var(--text2)">view.layers vs map.add</td><td><span class="badge badge-blue">Taught</span></td></tr>
+        <tr><td class="rule-label">#2</td><td style="font-size:13px;color:var(--text2)">Popup disabled: true</td><td><span class="badge badge-amber">2 hints</span></td></tr>
+        <tr><td class="rule-label">#3</td><td style="font-size:13px;color:var(--text2)">GraphicsLayer vs FeatureLayer</td><td><span class="badge badge-green">First try</span></td></tr>
+        <tr><td class="rule-label">#4</td><td style="font-size:13px;color:var(--text2)">Async timing / .when()</td><td><span class="badge badge-blue">Right instinct</span></td></tr>
+        <tr><td class="rule-label">#5</td><td style="font-size:13px;color:var(--text2)">All 3 bugs combined</td><td><span class="badge badge-green">Perfect — zero hints</span></td></tr>
+        <tr><td class="rule-label">#6</td><td style="font-size:13px;color:var(--text2)">Field name case sensitivity</td><td><span class="badge badge-amber">1 hint</span></td></tr>
+        <tr><td class="rule-label">#7</td><td style="font-size:13px;color:var(--text2)">Symbol in renderer</td><td><span class="badge badge-blue">Taught</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CHALLENGES = [
+  {
+    id:1, title:"view.layers vs map.add", level:"beginner",
+    complaint:"Map loads but the FeatureLayer never shows up. No console errors.",
+    code:`const layer = new FeatureLayer({ url: "...FeatureServer/0" });
+const map = new Map({ basemap: "topo-vector" });
+const view = new MapView({
+  container: "viewDiv", map: map, zoom: 13
+});
+map.add(layer);
+view.layers.add(layer);  // Line A`,
+    hints:[
+      "view.layers is a read-only mirror of map.layers — you cannot write to it",
+      "You never add layers directly to the view. Layers belong on the Map.",
+      "Line A is the problem. It conflicts with map.add() and causes silent failure."
+    ],
+    answer:"Remove view.layers.add(layer). Only use map.add(layer) — or pass layers:[layer] inside the Map constructor. view.layers is read-only and reflects map.layers automatically.",
+    fix:`map.add(layer);
+// DELETE: view.layers.add(layer);`
+  },
+  {
+    id:2, title:"Popup disabled: true", level:"beginner",
+    complaint:"Popup shows but is completely empty — no title, no content at all.",
+    code:`const view = new MapView({
+  container: "viewDiv",
+  map: map,
+  center: [-118.805, 34.027],
+  zoom: 13,
+  popup: {
+    disabled: true    // look here
+  }
+});`,
+    hints:[
+      "The popupTemplate definition on the layer is written correctly.",
+      "The problem is inside the MapView configuration — not the layer.",
+      "disabled: true completely shuts off the popup system. Your template is never read."
+    ],
+    answer:"Change disabled: true to disabled: false, or remove the popup block entirely. With disabled: true, the popup shell may still appear from the service default but your popupTemplate content is blocked.",
+    fix:`popup: { disabled: false }
+// or just remove the popup block entirely`
+  },
+  {
+    id:3, title:"GraphicsLayer vs FeatureLayer", level:"beginner",
+    complaint:"App crashes immediately: TypeError: layer.queryFeatures is not a function",
+    code:`require([
+  "esri/Map",
+  "esri/views/MapView",
+  "esri/layers/GraphicsLayer"  // wrong type
+], function(Map, MapView, GraphicsLayer) {
+
+  const layer = new GraphicsLayer({
+    url: "...FeatureServer/0"   // silently ignored
+  });
+
+  view.when(function() {
+    layer.queryFeatures({ where: "HEIGHT > 20" }); // crash
+  });
+});`,
+    hints:[
+      "GraphicsLayer is a blank canvas for manually drawn shapes — no server connection.",
+      "The url property is silently ignored by GraphicsLayer.",
+      "queryFeatures() only exists on FeatureLayer, not GraphicsLayer."
+    ],
+    answer:"Change GraphicsLayer to FeatureLayer in both the require() import and the constructor call. GraphicsLayer has no server connection and no queryFeatures method — it silently accepts the url but does nothing with it.",
+    fix:`require([
+  "esri/layers/FeatureLayer"  // fix import
+], function(Map, MapView, FeatureLayer) {
+  const layer = new FeatureLayer({  // fix constructor
+    url: "...FeatureServer/0"
+  });
+});`
+  },
+  {
+    id:4, title:"Async timing — fullExtent", level:"intermediate",
+    complaint:"TypeError: Cannot read properties of undefined (reading 'extent')",
+    code:`const layer = new FeatureLayer({ url: "...FeatureServer/0" });
+const map = new Map({ basemap: "topo-vector", layers: [layer] });
+const view = new MapView({
+  container: "viewDiv", map: map, zoom: 13
+});
+
+view.goTo(layer.fullExtent);  // too early — undefined!`,
+    hints:[
+      "new FeatureLayer() creates the JS object instantly — but the server data has not loaded yet.",
+      "layer.fullExtent is undefined until the layer fetches its metadata from the server.",
+      "You need to wait for the view to be ready, then wait for the layer to load, then call goTo."
+    ],
+    answer:"Wrap view.goTo() inside view.when() then layer.when(). This waits for the view to render, then waits for the layer to load its metadata from the server, so fullExtent is available.",
+    fix:`view.when(function() {
+  layer.when(function() {
+    view.goTo(layer.fullExtent);  // now fullExtent exists
+  });
+});`
+  },
+  {
+    id:5, title:"Multi-bug ticket (3 bugs)", level:"intermediate",
+    complaint:"1) App crashes on load  2) Popup is empty  3) Map never zooms to layer",
+    code:`require([
+  "esri/layers/GraphicsLayer"      // bug 1
+], function(..., GraphicsLayer) {
+
+  const layer = new GraphicsLayer({ url: "..." });
+
+  const view = new MapView({
+    ...,
+    popup: { disabled: true }      // bug 2
+  });
+
+  view.when(function() {
+    view.goTo(layer.fullExtent);   // bug 3
+  });
+});`,
+    hints:[
+      "Match each complaint to one line: crash = layer type, empty popup = popup config, no zoom = async.",
+      "You fixed each of these in challenges 3, 2, and 4 individually.",
+      "Bug 1: GraphicsLayer → FeatureLayer. Bug 2: disabled:true → false. Bug 3: missing layer.when()."
+    ],
+    answer:"Bug 1: Change GraphicsLayer to FeatureLayer (fix require + constructor). Bug 2: Change disabled:true to disabled:false. Bug 3: Wrap view.goTo inside layer.when() so fullExtent is loaded before calling it.",
+    fix:`// Bug 1
+const layer = new FeatureLayer({ url: "..." });
+
+// Bug 2
+popup: { disabled: false }
+
+// Bug 3
+view.when(() => {
+  layer.when(() => {
+    view.goTo(layer.fullExtent);
+  });
+});`
+  },
+  {
+    id:6, title:"Field name case sensitivity", level:"intermediate",
+    complaint:"Query runs without error but always returns an empty array []",
+    code:`const query = layer.createQuery();
+query.where = "Height > 20";       // is this the real field name?
+query.outFields = ["Cmn_Name"];
+query.returnGeometry = false;
+
+layer.queryFeatures(query).then(function(result) {
+  result.features.forEach(f => {
+    console.log(f.attributes.Cmn_Name);
+  });
+});`,
+    hints:[
+      "No crash means the query syntax is valid. The server accepted it — but found zero matches.",
+      "ArcGIS field names are case-sensitive in where clauses.",
+      "Open the service URL + ?f=json in your browser and find the exact 'name' values in the 'fields' array."
+    ],
+    answer:"The real field names are HEIGHT and CMN_NAME (all caps). ArcGIS field names are case-sensitive — 'Height > 20' matches zero records because no field named exactly 'Height' exists. Always verify exact field names from the service's ?f=json response.",
+    fix:`query.where = "HEIGHT > 20";        // exact case from ?f=json
+query.outFields = ["CMN_NAME"];     // exact case
+// in callback:
+console.log(f.attributes.CMN_NAME);`
+  },
+  {
+    id:7, title:"Symbol not using new in renderer", level:"intermediate",
+    complaint:"Layer completely disappears when renderer is applied. No error in console.",
+    code:`const renderer = new ClassBreaksRenderer({
+  field: "HEIGHT",
+  classBreakInfos: [
+    {
+      minValue: 0, maxValue: 20,
+      symbol: {                    // plain object — wrong
+        type: "simple-marker",
+        color: "green",
+        size: "8px"
+      },
+      label: "Short (0-20 ft)"
+    }
+  ]
+});`,
+    hints:[
+      "No error + layer invisible = symbol was silently rejected by the renderer.",
+      "Inside ClassBreaksRenderer, plain {} objects for symbols are not auto-cast.",
+      "Import SimpleMarkerSymbol and use new SimpleMarkerSymbol({}) — no 'type' property needed."
+    ],
+    answer:"Inside ClassBreaksRenderer, symbols must be explicitly instantiated with new SimpleMarkerSymbol({}). Plain objects are silently ignored, making features render with no symbol (invisible). Also add 'esri/symbols/SimpleMarkerSymbol' to your require() list.",
+    fix:`require([
+  "esri/symbols/SimpleMarkerSymbol"
+], function(..., SimpleMarkerSymbol) {
+
+  symbol: new SimpleMarkerSymbol({
+    color: "green",
+    size: "8px"
+    // no 'type' needed — class already knows its type
+  })
+})`
+  }
+];
+
+const FLASHCARDS = {
+  "Core concepts": [
+    {q:"What are the 3 building blocks of every ArcGIS JS app?", a:"Map (data container), MapView (visual renderer), Layer (the data). Layers go in Map, Map goes in MapView. They connect in this exact order."},
+    {q:"What is the difference between FeatureLayer and GraphicsLayer?", a:"FeatureLayer connects to a server — supports queryFeatures, attributes, renderers. GraphicsLayer is a blank canvas for manually drawn shapes — no server, no queryFeatures."},
+    {q:"What does view.when() do?", a:"Waits for the MapView to finish rendering before running your code. Use it before accessing view properties or layer data."},
+    {q:"What does layer.when() do?", a:"Waits for the layer to finish loading metadata from the server. Use it before accessing layer.fullExtent, layer.fields, layer.renderer etc."},
+    {q:"Why is view.layers read-only?", a:"view.layers is an automatic mirror of map.layers. You add layers to the Map — the view reflects what the map contains. Never call view.layers.add()."},
+    {q:"What does popupTemplate define?", a:"The title and content shown when a feature is clicked. Must have popup.disabled set to false (the default). Uses fieldInfos to show attribute values."},
+  ],
+  "Async & timing": [
+    {q:"When is layer.fullExtent available?", a:"Only after layer.when() resolves. The layer must fetch its metadata from the server first. Accessing it right after new FeatureLayer() returns undefined."},
+    {q:"Correct pattern to zoom to a layer's extent?", a:"view.when(() => layer.when(() => view.goTo(layer.fullExtent)))"},
+    {q:"What happens if you read layer.fields before layer loads?", a:"Returns undefined. You must wait inside layer.when() before accessing any server-derived properties like fields, renderer, fullExtent."},
+    {q:"What is the creation order for Map, MapView, FeatureLayer?", a:"Create FeatureLayer first, then Map (add layer), then MapView (assign map). All async — use .when() before reading their properties."},
+  ],
+  "Renderers & symbols": [
+    {q:"How do you define a symbol inside ClassBreaksRenderer?", a:"Use new SimpleMarkerSymbol({}) — never a plain object {}. Plain objects are silently ignored, making the layer invisible with no error."},
+    {q:"What must you do when using SimpleMarkerSymbol in code?", a:"Import it: add 'esri/symbols/SimpleMarkerSymbol' to require() and add the matching parameter to the function."},
+    {q:"What is ClassBreaksRenderer used for?", a:"Styling features differently based on numeric ranges — e.g. short trees green, tall trees red. Uses classBreakInfos with minValue/maxValue per class."},
+    {q:"What is UniqueValueRenderer used for?", a:"Styling features differently based on categorical field values — e.g. different color per city, status, or type string."},
+  ],
+  "Queries": [
+    {q:"Why does a query return empty results with no error?", a:"Usually a field name case mismatch. ArcGIS field names are case-sensitive. Verify exact names from the service URL + ?f=json in browser."},
+    {q:"How do you verify real field names for a service?", a:"Open the service REST URL in browser and append ?f=json. Find the 'fields' array and copy the exact 'name' value — don't type from memory."},
+    {q:"What does outFields do in a query?", a:"Specifies which attribute fields the server returns. Use ['*'] for all, or list specific field names. Only listed fields appear in result.attributes."},
+    {q:"What does returnGeometry: false do?", a:"Tells the server to skip sending coordinate data. Use when you only need attributes (e.g. printing names to console). Saves bandwidth."},
+  ],
+};
+
+const WEEKS = [
+  {num:"01–02", title:"SDK foundations", topics:["MapView lifecycle","Layer types","Renderers","Spatial refs","Popups"]},
+  {num:"03–04", title:"Coding practice", topics:["FeatureLayer queries","Custom widgets","Performance","Web components"]},
+  {num:"05–06", title:"System design", topics:["Real-time maps","Tile strategy","Offline apps","Portal integration"]},
+  {num:"07", title:"Behavioral", topics:["STAR method","Cross-functional","Handling ambiguity","Customer empathy"]},
+  {num:"08", title:"Mock loop + polish", topics:["Full mock rounds","Weak spot review","Resume","Esri docs deep dive"]},
+];
+
+let state = {
+  done: JSON.parse(localStorage.getItem('pe_done') || '[]'),
+  correct: JSON.parse(localStorage.getItem('pe_correct') || '[]'),
+  cardsReviewed: parseInt(localStorage.getItem('pe_cards') || '0'),
+  streak: parseInt(localStorage.getItem('pe_streak') || '0'),
+  flashDeck: null, flashIdx: 0, flashFlipped: false,
+  fcGot: 0, fcAlmost: 0, fcStudy: 0,
+};
+
+function save() {
+  localStorage.setItem('pe_done', JSON.stringify(state.done));
+  localStorage.setItem('pe_correct', JSON.stringify(state.correct));
+  localStorage.setItem('pe_cards', state.cardsReviewed);
+  localStorage.setItem('pe_streak', state.streak);
+}
+
+function updateMetrics() {
+  document.getElementById('m-done').textContent = state.done.length;
+  const pct = state.done.length ? Math.round(state.correct.length / state.done.length * 100) : 0;
+  document.getElementById('m-score').textContent = pct + '%';
+  document.getElementById('m-cards').textContent = state.cardsReviewed;
+  document.getElementById('m-streak').textContent = state.streak;
+}
+
+function show(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+function buildChallenges() {
+  document.getElementById('ch-list').innerHTML = CHALLENGES.map(c => {
+    const done = state.done.includes(c.id);
+    const ok = state.correct.includes(c.id);
+    return `<div class="card" id="ch${c.id}">
+      <div class="card-header">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-family:var(--display);font-size:14px;font-weight:700">#${c.id} — ${c.title}</span>
+          <span class="badge badge-${c.level==='beginner'?'blue':'amber'}">${c.level}</span>
+          ${done ? `<span class="badge badge-${ok?'green':'red'}">${ok?'solved':'studied'}</span>` : ''}
+        </div>
+        <button class="ch-toggle" onclick="toggleCh(${c.id})">${done?'review':'start'}</button>
+      </div>
+      <p class="ch-complaint">"${c.complaint}"</p>
+      <div id="ch-body-${c.id}" style="display:none;margin-top:1rem">
+        <pre>${c.code}</pre>
+        <div id="ch-hints-${c.id}"></div>
+        <div id="ch-answer-${c.id}" style="display:none">
+          <div class="answer-box">${c.answer}</div>
+          <pre>${c.fix}</pre>
+          <div class="btn-row">
+            <button class="primary" onclick="markCorrect(${c.id})">I got it</button>
+            <button onclick="markStudy(${c.id})">I needed help</button>
+          </div>
+        </div>
+        <div id="ch-hint-btns-${c.id}" class="btn-row">
+          ${c.hints.map((_,hi) => `<button onclick="showHint(${c.id},${hi})">Hint ${hi+1}</button>`).join('')}
+          <button onclick="showAnswer(${c.id})">Show answer</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let shownHints = {};
+function toggleCh(id) {
+  const b = document.getElementById('ch-body-'+id);
+  b.style.display = b.style.display === 'none' ? 'block' : 'none';
+}
+function showHint(id, hi) {
+  const ch = CHALLENGES.find(c=>c.id===id);
+  if (!shownHints[id]) shownHints[id] = [];
+  if (shownHints[id].includes(hi)) return;
+  shownHints[id].push(hi);
+  document.getElementById('ch-hints-'+id).innerHTML +=
+    `<div class="hint-box">Hint ${hi+1}: ${ch.hints[hi]}</div>`;
+}
+function showAnswer(id) {
+  document.getElementById('ch-answer-'+id).style.display = 'block';
+  document.getElementById('ch-hint-btns-'+id).style.display = 'none';
+  if (!state.done.includes(id)) { state.done.push(id); save(); updateMetrics(); buildChallenges(); }
+}
+function markCorrect(id) {
+  if (!state.correct.includes(id)) state.correct.push(id);
+  if (!state.done.includes(id)) state.done.push(id);
+  save(); updateMetrics(); buildChallenges();
+}
+function markStudy(id) {
+  if (!state.done.includes(id)) state.done.push(id);
+  save(); updateMetrics(); buildChallenges();
+}
+
+function buildDecks() {
+  document.getElementById('deck-btns').innerHTML = Object.keys(FLASHCARDS).map(k =>
+    `<button onclick="startDeck('${k}')">${k}</button>`
+  ).join('');
+}
+
+function startDeck(name) {
+  state.flashDeck = name; state.flashIdx = 0; state.flashFlipped = false;
+  showCard();
+}
+function showCard() {
+  if (!state.flashDeck) return;
+  const deck = FLASHCARDS[state.flashDeck];
+  const card = deck[state.flashIdx % deck.length];
+  document.getElementById('flash-front').textContent = card.q;
+  document.getElementById('flash-tap').textContent = 'tap to reveal answer';
+  document.getElementById('flash-back').style.display = 'none';
+  document.getElementById('flash-answer').textContent = card.a;
+  state.flashFlipped = false;
+}
+function flipCard() {
+  if (!state.flashDeck || state.flashFlipped) return;
+  state.flashFlipped = true;
+  document.getElementById('flash-tap').textContent = '';
+  document.getElementById('flash-back').style.display = 'block';
+}
+function rateCard(r) {
+  state.cardsReviewed++;
+  if (r==='got') state.fcGot++;
+  else if (r==='almost') state.fcAlmost++;
+  else state.fcStudy++;
+  state.flashIdx++;
+  document.getElementById('fc-got').textContent = 'Got it: '+state.fcGot;
+  document.getElementById('fc-almost').textContent = 'Almost: '+state.fcAlmost;
+  document.getElementById('fc-study').textContent = 'Need study: '+state.fcStudy;
+  save(); updateMetrics(); showCard();
+}
+
+function buildWeeks() {
+  document.getElementById('week-grid').innerHTML = WEEKS.map(w => `
+    <div class="week-card">
+      <div class="week-num">WEEK ${w.num}</div>
+      <div class="week-title">${w.title}</div>
+      ${w.topics.map(t=>`<span class="topic-tag">${t}</span>`).join('')}
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    </div>`).join('');
+}
+
+buildChallenges();
+buildDecks();
+buildWeeks();
+updateMetrics();
+
+const today = new Date().toDateString();
+const lastVisit = localStorage.getItem('pe_lastvisit');
+if (lastVisit !== today) {
+  if (lastVisit) state.streak++;
+  localStorage.setItem('pe_lastvisit', today);
+  save(); updateMetrics();
+}
+</script>
+</body>
+</html>
